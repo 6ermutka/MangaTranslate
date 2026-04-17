@@ -13,7 +13,7 @@
 |:---:|:---:|
 | ![original](demo/original.jpg) | ![translated](demo/translated.jpg) |
 
-> Manga: *Akatsuki no Ageha*, Ch.1 — автоматический перевод без ручной правки
+> Manga: *Dungeon Meshi (Delicious in Dungeon)*, Ch.1 — автоматический перевод без ручной правки
 
 ---
 
