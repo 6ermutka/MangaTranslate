@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+env/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Runtime data (generated at launch)
+web/data/library.json
+web/data/covers/
+web/data/pdf/
+web/data/pages/
+
+# Output
+translated/
+
+# Debug / temp images
+debug_*.png
+test_output/
+Тесты/
+1\ .png
+2.png
+3.png
+4.png
+скриншот*.png
+Снимок\ экрана*.png
+
+# Large files (use releases or LFS)
+yolov8s.pt
+dataset/
+models/bubble_detector/
+
+# IDE
+.vscode/
+.idea/
+*.swp

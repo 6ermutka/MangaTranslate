@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MangaTranslate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a28;
+  --accent:#ff3c6f;--accent2:#ff6b9d;--accent-glow:rgba(255,60,111,.3);
+  --cyan:#00e5ff;--cyan-glow:rgba(0,229,255,.25);
+  --gold:#ffd54f;
+  --text:#e8e8f0;--text2:#8888a0;--text3:#55556a;
+  --radius:8px;--radius-lg:14px;
+  --font-display:'Zen Maru Gothic',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+html{scrollbar-color:var(--bg3) var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:var(--font-display);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(255,60,111,.06),transparent 60%),radial-gradient(ellipse at 80% 100%,rgba(0,229,255,.04),transparent 60%);pointer-events:none;z-index:0}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(10,10,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.05);padding:0 2rem;display:flex;align-items:center;height:56px;gap:1.5rem}
+nav .logo{font-weight:900;font-size:1.3rem;letter-spacing:-.02em;color:var(--accent);text-shadow:0 0 20px var(--accent-glow)}
+nav .logo span{color:var(--cyan)}
+nav .nav-links{display:flex;gap:.5rem;margin-left:auto}
+nav .nav-links a{color:var(--text2);text-decoration:none;padding:.4rem 1rem;border-radius:var(--radius);font-size:.9rem;transition:all .2s;cursor:pointer;font-weight:700}
+nav .nav-links a:hover,nav .nav-links a.active{color:var(--text);background:var(--bg3)}
+
+.page{display:none;position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:2rem}
+.page.active{display:block;animation:fadeUp .4s ease}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+h1{font-size:2rem;font-weight:900;margin-bottom:.5rem}
+h2{font-size:1.4rem;font-weight:700;margin-bottom:.4rem}
+.sub{color:var(--text2);font-size:.95rem;margin-bottom:1.5rem}
+
+.card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;transition:border-color .2s}
+.card:hover{border-color:rgba(255,255,255,.1)}
+
+.input-row{display:flex;gap:.75rem;margin-bottom:1rem}
+.input-row input,.input-row select{flex:1;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.65rem 1rem;border-radius:var(--radius);font-family:inherit;font-size:.95rem;outline:none;transition:border-color .2s}
+.input-row input:focus,.input-row select:focus{border-color:var(--accent)}
+.input-row input::placeholder{color:var(--text3)}
+
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.4rem;border:none;border-radius:var(--radius);font-family:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 0 20px var(--accent-glow)}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 24px var(--accent-glow)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid rgba(255,255,255,.08)}
+.btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-danger{background:transparent;color:var(--accent);border:1px solid rgba(255,60,111,.3)}
+.btn-danger:hover{background:rgba(255,60,111,.1)}
+.btn-sm{padding:.35rem .8rem;font-size:.8rem}
+
+.chapters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.75rem;margin:1rem 0}
+.chapter-card{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:var(--radius);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;transition:all .15s;user-select:none}
+.chapter-card:hover{border-color:rgba(255,255,255,.12)}
+.chapter-card.selected{border-color:var(--accent);background:rgba(255,60,111,.08)}
+.chapter-card .ch-num{font-family:var(--font-mono);font-size:.85rem;color:var(--cyan);min-width:40px}
+.chapter-card .ch-title{flex:1;font-size:.85rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chapter-card .ch-pages{font-size:.75rem;color:var(--text3)}
+.chapter-card .ch-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--text3);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s}
+.chapter-card.selected .ch-check{border-color:var(--accent);background:var(--accent);color:#fff}
+
+.titles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem;margin-top:1.5rem}
+.title-card{background:var(--bg2);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all .2s}
+.title-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.title-card .cover{width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--bg3)}
+.title-card .info{padding:.75rem}
+.title-card .info h3{font-size:.9rem;font-weight:700;margin-bottom:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title-card .info .meta{font-size:.75rem;color:var(--text2)}
+
+.title-detail{margin-top:1.5rem}
+.title-detail .header{display:flex;gap:1.5rem;margin-bottom:1.5rem}
+.title-detail .cover-big{width:160px;aspect-ratio:2/3;object-fit:cover;border-radius:var(--radius-lg);border:2px solid rgba(255,255,255,.08)}
+.title-detail .meta-block{flex:1}
+.title-detail .meta-block h1{font-size:1.6rem}
+.title-detail .meta-block .sub{margin-bottom:1rem}
+
+.chapter-list{display:flex;flex-direction:column;gap:.5rem}
+.chapter-row{background:var(--bg3);border:1px solid rgba(255,255,255,.04);border-radius:var(--radius);padding:.6rem 1rem;display:flex;align-items:center;gap:1rem;transition:border-color .15s}
+.chapter-row:hover{border-color:rgba(255,255,255,.1)}
+.chapter-row .ch-num{font-family:var(--font-mono);color:var(--cyan);font-size:.85rem;min-width:50px}
+.chapter-row .ch-title{flex:1;font-size:.85rem;color:var(--text2)}
+.chapter-row .status{font-size:.75rem;padding:.2rem .6rem;border-radius:20px;font-weight:700}
+.status-done{background:rgba(0,229,255,.1);color:var(--cyan)}
+.status-translating{background:rgba(255,213,79,.1);color:var(--gold)}
+.status-queued{background:rgba(255,255,255,.05);color:var(--text3)}
+.status-error{background:rgba(255,60,111,.1);color:var(--accent)}
+.status-paused{background:rgba(160,130,255,.12);color:#b39ddb}
+
+.progress-bar{width:80px;height:4px;background:var(--bg);border-radius:2px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--gold);border-radius:2px;transition:width .3s}
+
+.empty-state{text-align:center;padding:4rem 1rem;color:var(--text3)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.3}
+.empty-state p{font-size:1rem;margin-bottom:1.5rem}
+
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.settings-grid label{display:flex;flex-direction:column;gap:.3rem;font-size:.85rem;color:var(--text2)}
+.settings-grid input,.settings-grid select{background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.55rem .8rem;border-radius:var(--radius);font-family:inherit;outline:none}
+.settings-grid input:focus{border-color:var(--cyan)}
+
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--accent);color:var(--text);padding:.6rem 1.5rem;border-radius:var(--radius);font-size:.9rem;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+@media(max-width:700px){
+  .titles-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .title-detail .header{flex-direction:column;align-items:center;text-align:center}
+  .settings-grid{grid-template-columns:1fr}
+  .chapters-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Manga<span>Translate</span></div>
+  <div class="nav-links">
+    <a class="active" data-page="library">Мои тайтлы</a>
+    <a data-page="parse">Парсинг</a>
+    <a data-page="settings">Настройки</a>
+  </div>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<!-- LIBRARY PAGE -->
+<div id="page-library" class="page active">
+  <h1>Мои тайтлы</h1>
+  <p class="sub">Переведённые главы манги</p>
+  <div id="titles-grid" class="titles-grid"></div>
+  <div id="title-detail" class="title-detail" style="display:none"></div>
+  <div id="empty-library" class="empty-state">
+    <div class="icon">&#x1F4D6;</div>
+    <p>Пока пусто. Перейди в «Парсинг» и добавь мангу</p>
+    <button class="btn btn-primary" onclick="showPage('parse')">Парсить мангу</button>
+  </div>
+</div>
+
+<!-- PARSE PAGE -->
+<div id="page-parse" class="page">
+  <h1>Парсинг манги</h1>
+  <p class="sub">Вставь ссылку с MangaDex и выбери главы для перевода</p>
+  <div class="card">
+    <div class="input-row">
+      <input id="manga-url" type="text" placeholder="https://mangadex.org/title/... или ID">
+      <button class="btn btn-primary" onclick="parseManga()">Найти главы</button>
+    </div>
+  </div>
+  <div id="parse-result" style="display:none">
+    <div class="card" style="display:flex;gap:1rem;align-items:center">
+      <img id="parse-cover" class="cover-big" style="width:80px;height:auto;border-radius:6px">
+      <div>
+        <h2 id="parse-title"></h2>
+        <p id="parse-info" class="sub" style="margin-bottom:0"></p>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;margin:1rem 0">
+      <button class="btn btn-secondary btn-sm" onclick="selectAll()">Выбрать все</button>
+      <button class="btn btn-secondary btn-sm" onclick="selectNone()">Снять все</button>
+      <span id="selected-count" style="color:var(--text2);font-size:.85rem"></span>
+      <button class="btn btn-primary" id="translate-btn" style="margin-left:auto" onclick="startTranslate()">Перевести выбранные</button>
+    </div>
+    <div id="chapters-grid" class="chapters-grid"></div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div id="page-settings" class="page">
+  <h1>Настройки</h1>
+  <p class="sub">Конфигурация перевода</p>
+  <div class="card">
+    <div class="settings-grid">
+      <label>Fireworks API Key
+        <input id="cfg-api-key" type="password" placeholder="fw_...">
+      </label>
+      <label>Язык перевода по умолчанию
+        <select id="cfg-source-lang">
+          <option value="en">English</option>
+          <option value="id">Indonesian</option>
+          <option value="ja">Japanese</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <h2 style="margin-bottom:.5rem">OCR промпт (Qwen)</h2>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Инструкция для модели чтения текста</p>
+    <textarea id="cfg-ocr-prompt" rows="4" style="width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.65rem 1rem;border-radius:var(--radius);font-family:inherit;font-size:.9rem;outline:none;resize:vertical"></textarea>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <h2 style="margin-bottom:.5rem">Системный промпт (Llama)</h2>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Инструкция для модели перевода Llama</p>
+    <textarea id="cfg-system-prompt" rows="8" style="width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.65rem 1rem;border-radius:var(--radius);font-family:inherit;font-size:.9rem;outline:none;resize:vertical"></textarea>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <h2 style="margin-bottom:.5rem">Словарь перевода</h2>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:.75rem">Подсказки для Llama: как переводить слова</p>
+    <div id="dict-rows" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem"></div>
+    <button class="btn btn-secondary btn-sm" onclick="addDictRow('','')">+ Добавить</button>
+  </div>
+
+  <button class="btn btn-primary" onclick="saveSettings()" style="margin-top:1rem">Сохранить</button>
+</div>
+
+<script>
+const API = '';
+
+let parsedChapters = [];
+let parsedManga = null;
+let selectedChapters = new Set();
+let currentDetailId = null;
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.classList.toggle('active', a.dataset.page === name);
+  });
+  if (name === 'library') loadLibrary();
+  if (name === 'settings') loadSettings();
+}
+
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    showPage(a.dataset.page);
+    if (a.dataset.page === 'library') currentDetailId = null;
+  });
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// ── Library ──
+
+async function loadLibrary() {
+  const lib = await api('/api/library');
+  const grid = document.getElementById('titles-grid');
+  const empty = document.getElementById('empty-library');
+  const detail = document.getElementById('title-detail');
+  const titles = Object.values(lib.titles);
+
+  if (currentDetailId) {
+    grid.style.display = 'none';
+    empty.style.display = 'none';
+    detail.style.display = 'block';
+    renderTitleDetail(currentDetailId, lib);
+    return;
+  }
+
+  detail.style.display = 'none';
+
+  if (!titles.length) {
+    grid.innerHTML = '';
+    empty.style.display = '';
+    grid.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = '';
+
+  grid.innerHTML = titles.map(t => {
+    const done = Object.values(t.chapters).filter(c => c.status === 'done').length;
+    const total = Object.keys(t.chapters).length;
+    const coverSrc = t.cover ? `/covers/${t.cover}` : '';
+    return `<div class="title-card" onclick="openTitle('${t.id}')">
+      ${coverSrc ? `<img class="cover" src="${coverSrc}" loading="lazy">` : '<div class="cover" style="display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:2rem">&#x1F4D6;</div>'}
+      <div class="info">
+        <h3>${esc(t.title)}</h3>
+        <div class="meta">${done}/${total} глав переведено</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openTitle(id) {
+  currentDetailId = id;
+  loadLibrary();
+}
+
+function renderTitleDetail(id, lib) {
+  const t = lib.titles[id];
+  if (!t) { currentDetailId = null; loadLibrary(); return; }
+  const detail = document.getElementById('title-detail');
+  const coverSrc = t.cover ? `/covers/${t.cover}` : '';
+  const done = Object.values(t.chapters).filter(c => c.status === 'done').length;
+  const total = Object.keys(t.chapters).length;
+
+  const chaptersHtml = Object.values(t.chapters)
+    .sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter))
+    .map(c => {
+      let statusHtml = '';
+      if (c.status === 'done') statusHtml = `<span class="status status-done">Готово</span><a href="/api/view/${id}/${c.chapter}" target="_blank" class="btn btn-secondary btn-sm">Открыть</a>`;
+      else if (c.status === 'translating') statusHtml = `<span class="status status-translating">${c.pages_done || 0}/${c.pages_total || '?'}</span><div class="progress-bar"><div class="fill" style="width:${c.progress}%"></div></div><button class="btn btn-secondary btn-sm" onclick="pauseChapter('${id}','${c.chapter}')">⏸</button>`;
+      else if (c.status === 'paused') statusHtml = `<span class="status status-paused">Пауза ${c.pages_done || 0}/${c.pages_total || '?'}</span><button class="btn btn-secondary btn-sm" onclick="resumeChapter('${id}','${c.chapter}')">▶</button>`;
+      else if (c.status === 'error') statusHtml = `<span class="status status-error">Ошибка</span><button class="btn btn-secondary btn-sm" onclick="resumeChapter('${id}','${c.chapter}')">↺</button>`;
+      else statusHtml = `<span class="status status-queued">Очередь</span>`;
+
+      return `<div class="chapter-row">
+        <span class="ch-num">Ch.${c.chapter}</span>
+        <span class="ch-title">${esc(c.title || '')}</span>
+        ${statusHtml}
+        <button class="btn btn-danger btn-sm" onclick="deleteChapter('${id}','${c.chapter}')">✕</button>
+      </div>`;
+    }).join('');
+
+  detail.innerHTML = `
+    <button class="btn btn-secondary btn-sm" onclick="currentDetailId=null;loadLibrary()" style="margin-bottom:1rem">&#8592; Назад</button>
+    <div class="header">
+      ${coverSrc ? `<img class="cover-big" src="${coverSrc}">` : ''}
+      <div class="meta-block">
+        <h1>${esc(t.title)}</h1>
+        <p class="sub">${done}/${total} глав &middot; ${t.source_lang}</p>
+        <button class="btn btn-danger btn-sm" onclick="deleteTitle('${id}')">Удалить тайтл</button>
+      </div>
+    </div>
+    <h2>Главы</h2>
+    <div class="chapter-list">${chaptersHtml || '<p style="color:var(--text3)">Нет глав</p>'}</div>
+  `;
+}
+
+async function pauseChapter(mangaId, chNum) {
+  await api(`/api/pause/${mangaId}/${chNum}`, { method: 'POST' });
+  loadLibrary();
+}
+
+async function resumeChapter(mangaId, chNum) {
+  await api(`/api/resume/${mangaId}/${chNum}`, { method: 'POST' });
+  toast('Перевод возобновлён');
+  loadLibrary();
+}
+
+async function deleteTitle(id) {
+  if (!confirm('Удалить тайтл и все PDF?')) return;
+  await api(`/api/title/${id}`, { method: 'DELETE' });
+  currentDetailId = null;
+  loadLibrary();
+  toast('Тайтл удалён');
+}
+
+async function deleteChapter(mangaId, chNum) {
+  await api(`/api/chapter/${mangaId}/${chNum}`, { method: 'DELETE' });
+  loadLibrary();
+}
+
+// ── Parse ──
+
+async function parseManga() {
+  const url = document.getElementById('manga-url').value.trim();
+  if (!url) return toast('Вставь ссылку или ID');
+
+  document.getElementById('parse-result').style.display = 'none';
+  toast('Ищу главы...');
+
+  const langs = ['en', 'id'];
+  let allChapters = [];
+  let mangaInfo = null;
+
+  for (const l of langs) {
+    try {
+      const data = await api('/api/parse', { method: 'POST', body: { url, lang: l } });
+      if (!mangaInfo) mangaInfo = data.manga;
+      for (const ch of data.chapters) {
+        if (!allChapters.find(c => c.chapter === ch.chapter)) {
+          allChapters.push({ ...ch, lang: l });
+        }
+      }
+    } catch (e) { /* skip missing lang */ }
+  }
+
+  if (!mangaInfo) { toast('Манга не найдена'); return; }
+
+  allChapters.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
+  parsedChapters = allChapters;
+  parsedManga = mangaInfo;
+  selectedChapters.clear();
+
+  document.getElementById('parse-cover').src = mangaInfo.cover_url || '';
+  document.getElementById('parse-title').textContent = mangaInfo.title;
+  document.getElementById('parse-info').textContent = `${allChapters.length} глав`;
+  document.getElementById('parse-result').style.display = '';
+  renderParsedChapters();
+}
+
+function renderParsedChapters() {
+  const grid = document.getElementById('chapters-grid');
+  grid.innerHTML = parsedChapters.map((ch, i) => {
+    const sel = selectedChapters.has(i);
+    return `<div class="chapter-card ${sel ? 'selected' : ''}" onclick="toggleChapter(${i})">
+      <div class="ch-check">${sel ? '&#10003;' : ''}</div>
+      <span class="ch-num">Ch.${ch.chapter}</span>
+      <span class="ch-title">${esc(ch.title)}</span>
+      <span class="ch-pages">${ch.pages}p</span>
+      <span style="font-size:.7rem;color:var(--text3)">${ch.lang}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('selected-count').textContent = `${selectedChapters.size} выбрано`;
+}
+
+function toggleChapter(i) {
+  if (selectedChapters.has(i)) selectedChapters.delete(i);
+  else selectedChapters.add(i);
+  renderParsedChapters();
+}
+
+function selectAll() {
+  parsedChapters.forEach((_, i) => selectedChapters.add(i));
+  renderParsedChapters();
+}
+
+function selectNone() {
+  selectedChapters.clear();
+  renderParsedChapters();
+}
+
+async function startTranslate() {
+  if (!selectedChapters.size) return toast('Выбери хотя бы одну главу');
+  const chapters = [...selectedChapters].map(i => parsedChapters[i]);
+  const sourceLang = chapters[0]?.lang || 'en';
+
+  try {
+    await api('/api/translate', {
+      method: 'POST',
+      body: {
+        manga_id: parsedManga.id,
+        manga_title: parsedManga.title,
+        cover_url: parsedManga.cover_url,
+        chapters,
+        source_lang: sourceLang,
+      },
+    });
+    toast(`Перевод запущен: ${chapters.length} глав`);
+    currentDetailId = parsedManga.id;
+    showPage('library');
+  } catch (e) {
+    toast('Ошибка: ' + e.message);
+  }
+}
+
+// ── Settings ──
+
+let dictEntries = [];
+
+async function loadSettings() {
+  const cfg = await api('/api/config');
+  document.getElementById('cfg-api-key').value = cfg.fireworks_api_key || '';
+  document.getElementById('cfg-source-lang').value = cfg.default_source_lang || 'en';
+  document.getElementById('cfg-ocr-prompt').value = cfg.ocr_system_prompt || '';
+  document.getElementById('cfg-system-prompt').value = cfg.system_prompt || '';
+  dictEntries = [];
+  const dict = cfg.user_dict || {};
+  const container = document.getElementById('dict-rows');
+  container.innerHTML = '';
+  for (const [k, v] of Object.entries(dict)) {
+    addDictRow(k, v);
+  }
+}
+
+function addDictRow(key, value) {
+  const idx = dictEntries.length;
+  dictEntries.push({key, value});
+  const container = document.getElementById('dict-rows');
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:.5rem;align-items:center';
+  row.innerHTML = `
+    <input class="dict-key" type="text" value="${esc(key)}" placeholder="оригинал" style="width:120px;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.4rem .6rem;border-radius:4px;font-family:inherit;font-size:.85rem;outline:none">
+    <span style="color:var(--cyan)">→</span>
+    <input class="dict-val" type="text" value="${esc(value)}" placeholder="перевод" style="width:120px;background:var(--bg3);border:1px solid rgba(255,255,255,.08);color:var(--text);padding:.4rem .6rem;border-radius:4px;font-family:inherit;font-size:.85rem;outline:none">
+    <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()" style="padding:.2rem .5rem;font-size:.75rem">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+async function saveSettings() {
+  const dict = {};
+  document.querySelectorAll('#dict-rows > div').forEach(row => {
+    const k = row.querySelector('.dict-key').value.trim();
+    const v = row.querySelector('.dict-val').value.trim();
+    if (k && v) dict[k] = v;
+  });
+  const body = {
+    fireworks_api_key: document.getElementById('cfg-api-key').value,
+    default_source_lang: document.getElementById('cfg-source-lang').value,
+    ocr_system_prompt: document.getElementById('cfg-ocr-prompt').value,
+    system_prompt: document.getElementById('cfg-system-prompt').value,
+    user_dict: dict,
+  };
+  await api('/api/config', { method: 'POST', body });
+  toast('Настройки сохранены');
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Auto-refresh library when translating
+let refreshInterval = null;
+function startRefresh() {
+  if (refreshInterval) return;
+  refreshInterval = setInterval(() => {
+    if (document.getElementById('page-library').classList.contains('active')) {
+      loadLibrary();
+    }
+  }, 2000);
+}
+startRefresh();
+
+loadLibrary();
+</script>
+</body>
+</html>
