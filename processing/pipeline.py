@@ -8,7 +8,6 @@ import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageFont
 
-from capture.screen_capture import ScreenCapture
 from ocr.ocr_engine import OCREngine
 from translation.translator import Translator
 from ocr.yolo_detector import YOLOBubbleDetector
@@ -201,6 +200,7 @@ class TranslationPipeline:
         self._on_result = on_result
         self._scale_factor = scale_factor
 
+        from capture.screen_capture import ScreenCapture
         self._capture = ScreenCapture(scale_factor=scale_factor)
         self._ocr = OCREngine()
         self._translator = Translator()
