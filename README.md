@@ -48,7 +48,7 @@ cd MangaTranslate
 ### 2. Установить зависимости
 
 ```bash
-pip install -r requirements.txt
+pip3.11 install -r requirements.txt
 ```
 
 ### 3. Указать API ключ
