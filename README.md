@@ -41,7 +41,7 @@
 ### 1. Клонировать репозиторий
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/MangaTranslate.git
+git clone https://github.com/6ermutka/MangaTranslate.git
 cd MangaTranslate
 ```
 
@@ -122,3 +122,10 @@ MangaTranslate/
 | `port` | Порт сервера (по умолчанию 8420) |
 
 Все параметры также редактируются через вкладку **Настройки** в веб-интерфейсе.
+
+---
+
+## Contributors
+
+- [@6ermutka](https://github.com/6ermutka) — автор проекта
+- [Claude Sonnet](https://claude.ai) — AI-ассистент разработки
