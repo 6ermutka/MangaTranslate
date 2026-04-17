@@ -11,7 +11,7 @@
 
 | Оригинал (EN) | Переведено (RU) |
 |:---:|:---:|
-| ![original](demo/original.jpg) | ![translated](demo/translated.jpg) |
+| ![before](demo/before.jpg) | ![after](demo/after.jpg) |
 
 > Manga: *Dungeon Meshi (Delicious in Dungeon)*, Ch.1 — автоматический перевод без ручной правки
 
